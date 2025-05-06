@@ -22,13 +22,43 @@ document.addEventListener('DOMContentLoaded', () => {
   let productsData = [];
   const productList = document.querySelector('.product-list');
   const sortSelect = document.getElementById('sort');
-
-  // Determine fetch URL based on search param
+  // Parse URL parameters
   const params = new URLSearchParams(window.location.search);
+  const category = params.get('category');
   const search = params.get('search');
-  const fetchUrl = search
-    ? `/api/products/search?q=${encodeURIComponent(search)}`
-    : '/api/products';
+
+  // Populate category filter dropdown
+  const categorySelect = document.getElementById('category');
+  if (categorySelect) {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(categories => {
+        categories.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          categorySelect.appendChild(opt);
+        });
+        if (category) categorySelect.value = category;
+      })
+      .catch(err => console.error('Error fetching categories:', err));
+    categorySelect.addEventListener('change', () => {
+      const sel = categorySelect.value;
+      const newParams = new URLSearchParams();
+      if (sel) newParams.set('category', sel);
+      window.location.href = `products.html${newParams.toString() ? '?' + newParams.toString() : ''}`;
+    });
+  }
+
+  // Determine fetch URL based on search or category filter
+  let fetchUrl;
+  if (search) {
+    fetchUrl = `/api/products/search?q=${encodeURIComponent(search)}`;
+  } else if (category) {
+    fetchUrl = `/api/products?category=${encodeURIComponent(category)}`;
+  } else {
+    fetchUrl = '/api/products';
+  }
   fetch(fetchUrl)
     .then(res => res.json())
     .then(data => {
