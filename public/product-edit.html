@@ -27,31 +27,31 @@
 
     <main>
       <h2>Edit Product Details</h2>
-      <form>
-        <p>Product ID: 1 (not editable)</p>
+      <form id="product-form">
+        <p id="product-id"></p>
         <label>
           Name:
-          <input type="text" value="RTX 5070" />
+          <input id="name" name="name" type="text" value="" required />
         </label>
         <br />
         <label>
           Description:
-          <textarea>High-end GPU</textarea>
+          <textarea id="description" name="description" required></textarea>
         </label>
         <br />
         <label>
           Category:
-          <input type="text" value="Graphics Cards" />
+          <select id="category" name="category_id" required></select>
         </label>
         <br />
         <label>
-          Image Path:
-          <input type="text" value="images/1_rtx-5070-1024x683.webp" />
+          Image URL:
+          <input id="image_url" name="image_url" type="text" value="" required />
         </label>
         <br />
         <label>
           Price:
-          <input type="text" value="29.99" />
+          <input id="price" name="price" type="number" step="0.01" value="" required />
         </label>
         <br />
         <button type="submit">Save Changes</button>
@@ -61,5 +61,6 @@
     <footer>
       <p>&copy; 2025 The Tech Store. All Rights Reserved.</p>
     </footer>
+    <script src="scripts/product-edit.js" defer></script>
   </body>
 </html>

@@ -73,11 +73,25 @@ async function updateProduct(req, res) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+async function deleteProduct(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const changes = await productModel.deleteProduct(id);
+    if (changes === 0) {
+      return res.status(404).json({ error: 'No product deleted' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteProduct:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 module.exports = {
   listAllProducts,
   getProduct,
   searchProducts,
   createNewProduct,
-  updateProduct
+  updateProduct,
+  deleteProduct,
 };

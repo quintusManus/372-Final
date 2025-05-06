@@ -8,9 +8,18 @@ const db = require("../db/database");
  * Get all products.
  * @return {Promise<Array>} array of product objects
  */
+/**
+ * Get all products with category name.
+ * @return {Promise<Array>} array of product objects with category_name
+ */
 function getAllProducts() {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT * FROM products ORDER BY id DESC`;
+    const sql = `
+      SELECT p.*, c.name AS category_name
+      FROM products p
+      JOIN categories c ON p.category_id = c.id
+      ORDER BY p.id DESC
+    `;
     db.all(sql, [], (err, rows) => {
       if (err) return reject(err);
       resolve(rows);
@@ -23,9 +32,19 @@ function getAllProducts() {
  * @param {number} productId - product primary key
  * @return {Promise<object>} single product object
  */
+/**
+ * Get a single product by ID with category name.
+ * @param {number} productId - product primary key
+ * @return {Promise<object>} single product object with category_name
+ */
 function getProductById(productId) {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT * FROM products WHERE id = ?`;
+    const sql = `
+      SELECT p.*, c.name AS category_name
+      FROM products p
+      JOIN categories c ON p.category_id = c.id
+      WHERE p.id = ?
+    `;
     db.get(sql, [productId], (err, row) => {
       if (err) return reject(err);
       resolve(row); // row or undefined
@@ -41,11 +60,11 @@ function getProductById(productId) {
 function searchProducts(keyword) {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT p.*
-    FROM products p
-    JOIN categories c ON p.category_id = c.id
-    WHERE LOWER(p.name) LIKE LOWER(?)
-     OR LOWER(c.name) LIKE LOWER(?)
+      SELECT p.*, c.name AS category_name
+      FROM products p
+      JOIN categories c ON p.category_id = c.id
+      WHERE LOWER(p.name) LIKE LOWER(?)
+         OR LOWER(c.name) LIKE LOWER(?)
       ORDER BY p.id DESC
     `;
     const likeQuery = `%${keyword}%`;
@@ -103,6 +122,20 @@ function updateProduct(id, productData) {
     );
   });
 }
+/**
+ * Delete a product by ID (admin).
+ * @param {number} id
+ * @return {Promise<number>} number of rows deleted
+ */
+function deleteProduct(id) {
+  return new Promise((resolve, reject) => {
+    const sql = `DELETE FROM products WHERE id = ?`;
+    db.run(sql, [id], function (err) {
+      if (err) return reject(err);
+      resolve(this.changes);
+    });
+  });
+}
 
 module.exports = {
   getAllProducts,
@@ -110,4 +143,5 @@ module.exports = {
   searchProducts,
   createProduct,
   updateProduct,
+  deleteProduct,
 };

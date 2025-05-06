@@ -15,6 +15,18 @@ body {
   padding: 0;
 }
 
+/* Center content and add horizontal padding */
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Capitalize all headings */
+h1, h2, h3, h4, h5, h6 {
+  text-transform: capitalize;
+}
+
 /* -------- Header & Navigation -------- */
 header {
   background-color: #333;
@@ -27,7 +39,7 @@ header {
 
 header h1 {
   margin: 0;
-  text-transform: lowercase; /* consistent styling */
+  text-transform: uppercase;
 }
 
 header h1 a {
@@ -49,7 +61,7 @@ nav ul li {
 nav ul li a {
   color: #fff;
   text-decoration: none;
-  text-transform: lowercase; /* consistent styling */
+  text-transform: uppercase;
 }
 
 /* -------- Splash Section -------- */
@@ -105,7 +117,7 @@ nav ul li a {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
-  margin: 2rem;
+  margin: 2rem 0;
 }
 
 .product-item {
@@ -136,7 +148,7 @@ nav ul li a {
 .product-details {
   display: flex;
   flex-wrap: wrap;
-  margin: 2rem;
+  margin: 2rem 0;
 }
 
 .product-details img {

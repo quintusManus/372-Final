@@ -28,8 +28,8 @@
     <main>
       <h2>Bulk Upload Products</h2>
       <p>Upload JSON, CSV, or TXT files with product data.</p>
-      <form>
-        <input type="file" accept=".json,.csv,.txt" />
+      <form id="upload-form">
+        <input id="file-input" type="file" accept=".json,.csv,.txt" />
         <button type="submit">Upload</button>
       </form>
       <h3>Example JSON Format:</h3>
@@ -52,5 +52,6 @@
     <footer>
       <p>&copy; 2025 The Tech Store. All Rights Reserved.</p>
     </footer>
+    <script src="scripts/admin-upload.js" defer></script>
   </body>
 </html>

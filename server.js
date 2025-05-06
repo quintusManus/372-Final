@@ -29,6 +29,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/products", productRoutes);
 app.use("/api/carts", cartRoutes);
 app.use("/api/users", userRoutes);
+// Categories endpoints
+const categoryRoutes = require("./routes/categoryRoutes");
+app.use("/api/categories", categoryRoutes);
 
 // Basic test route
 app.get("/api/health", (req, res) => {

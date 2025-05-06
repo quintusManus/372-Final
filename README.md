@@ -1,91 +1,138 @@
-# My E-Commerce Node Project
+<!--
+  Name: Benjamin Woods
+  Date: 05.05.2025
+  CSC 372-01
+-->
+# Tech Store E-Commerce
 
 ## Overview
-A simple ecommerce backend using Node.js, Express, and SQLite. It serves static
-frontend prototypes from `public/` and provides REST APIs under `/api`.
+Tech Store is a full-stack JavaScript e-commerce demo.
+The back end is built with Node.js, Express, and SQLite; the front end uses plain HTML,
+CSS, and vanilla JavaScript to consume the REST API.
+
+## Tech Stack
+- **Runtime & framework:** Node.js, Express.js
+- **Database:** SQLite (`sqlite3`, `better-sqlite3`)
+- **File uploads:** Multer
+- **Front end:** HTML5, CSS3, Vanilla JavaScript
+
+## Third-Party API
+- **Advice Slip JSON API**: fetches a random advice slip on the home page
+  (`https://api.adviceslip.com/advice`)
 
 ## Installation
-1. Clone this repository:  
-   `git clone https://github.com/quintusManus/CSC372-BigProject.git && cd CSC372-BigProject`
-2. Install dependencies:  
-   `npm install`
+1. Clone this repo and navigate into the project directory:
+   ```bash
+   git clone https://github.com/quintusManus/CSC372-BigProject.git
+   cd csc372-hw/bigProject
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
 ## Database Setup
-1. `sqlite3 db/ecommerce.db < db/create_tables.sql`
-2. `sqlite3 db/ecommerce.db < db/insert_categories.sql`
-3. `sqlite3 db/ecommerce.db < db/insert_products.sql`
+1. Create the database and schema:
+   ```bash
+   sqlite3 db/ecommerce.db < db/create_tables.sql
+   ```
+2. Load initial data:
+   ```bash
+   sqlite3 db/ecommerce.db < db/insert_categories.sql
+   sqlite3 db/ecommerce.db < db/insert_products.sql
+   ```
+3. To reset:
+   ```bash
+   sqlite3 db/ecommerce.db < db/drop_tables.sql
+   ```
 
-(If you need to reset, run `sqlite3 db/ecommerce.db < db/drop_tables.sql` first.)
-
-## Run
-`npm start`
-or
-`node server.js`
-or 
-'nodemon server.js' if you have nodemon.
-
-Visit http://localhost:3000/ to view the static pages.
+## Running the App
+Start the server (defaults to port 3000):
+```bash
+npm start
+# or
+node server.js
+# or (if installed)
+nodemon server.js
+```
+Open your browser to `http://localhost:3000`.
 
 ## API Endpoints
 
+### Health Check
+- GET `/api/health`
+  ```json
+  { "status": "OK", "time": "<ISO timestamp>" }
+  ```
+
 ### Products
-- **GET** `/api/products`  
-  Returns an array of all products.
+- GET `/api/products`  
+  List all products.
+- GET `/api/products/:id`  
+  Get product by ID.
+- GET `/api/products/search?q=<keyword>`  
+  Search products by name or category.
+- POST `/api/products` *(admin)*  
+  Create a new product. JSON body example:
+  ```json
+  {
+    "name": "New GPU",
+    "description": "Powerful GPU",
+    "image_url": "images/gpu.png",
+    "price": 699.99,
+    "category_id": 1
+  }
+  ```
+- PUT `/api/products/:id` *(admin)*  
+  Update an existing product. Accepts the same JSON fields.
 
-- **GET** `/api/products/:id`  
-  Returns a single product by its ID.
-
-- **GET** `/api/products/search?q=keyword`  
-  Searches for products by name or category.
-
-- **POST** `/api/products` (admin)  
-  Creates a new product. Expects JSON body like:
-
-{
-“name”: “New GPU”,
-“description”: “Powerful GPU”,
-“image_url”: “images/gpu.png”,
-“price”: 699.99,
-“category_id”: 1
-}
-
-- **PUT** `/api/products/:id` (admin)  
-Updates an existing product. Expects a JSON body with fields to change.
+### Categories
+- GET `/api/categories`  
+  List all categories.
 
 ### Carts
-- **GET** `/api/carts/user/:userId`  
-Retrieves or creates a cart for the given user.
-
-- **GET** `/api/carts/:cartId`  
-Returns cart details, including items.
-
-- **POST** `/api/carts/:cartId/products`  
-Adds a product to the specified cart. JSON body example:
-
-{
-“productId”: 2,
-“quantity”: 1
-}
-
-- **DELETE** `/api/carts/:cartId/products/:cartProductId`  
-Removes a line item from the cart.
-
-- **POST** `/api/carts/:cartId/checkout`  
-Marks the cart as purchased and clears items.
+- GET `/api/carts/user/:userId`  
+  Retrieve or create a cart for a user.
+- GET `/api/carts/:cartId`  
+  Get cart details (includes items).
+- POST `/api/carts/:cartId/products`  
+  Add a product to a cart. JSON body example:
+  ```json
+  {
+    "productId": 2,
+    "quantity": 1
+  }
+  ```
+- DELETE `/api/carts/:cartId/products/:cartProductId`  
+  Remove an item from the cart.
+- POST `/api/carts/:cartId/checkout`  
+  Checkout the cart (marks as purchased & clears items).
 
 ### Users
-- **POST** `/api/users`  
-Creates a new user (shopper or admin). JSON body example:
+- POST `/api/users`  
+  Create a new user (shopper or admin). JSON body example:
+  ```json
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "password": "Secret123",
+    "user_type": "shopper"
+  }
+  ```
+- GET `/api/users/:id`  
+  Retrieve user by ID.
+- PUT `/api/users/:id`  
+  Update user record (e.g., name, password).
 
-{
-“name”: “Alice”,
-“email”: “alice@example.com”,
-“password”: “Secret123”,
-“user_type”: “shopper”
-}
+## Front-End
+Static pages and assets are in `public/`:
+- `index.html` — Home page (featured products & random advice)
+- `products.html` — Browse & search products
+- `details.html` — Product detail view
+- `cart.html` — Shopping cart
+- `admin-products.html`, `product-edit.html`, `admin-upload.html` — Basic admin interface
+- CSS in `public/styles`, JS in `public/scripts`, images in `public/images`
 
-- **GET** `/api/users/:id`  
-Retrieves a user by ID.
-
-- **PUT** `/api/users/:id`  
-Updates user record (e.g., name, password, etc.).
+## Database Schema
+See `db/schema-diagram.png` for the ER diagram.  
+Table definitions and sample data are in `db/*.sql`.

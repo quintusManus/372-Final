@@ -9,7 +9,7 @@ VALUES (
   'RTX 5070',
   'High-performance GPU for gaming',
   'images/rtx5070.png',
-  499.99,
+  49.99,
   1  -- references "Graphics Cards"
 );
 
@@ -18,7 +18,7 @@ VALUES (
   'Core i9 Processor',
   'Flagship Intel processor for extreme performance',
   'images/intel_i9.png',
-  599.99,
+  69.96,
   2  -- references "CPUs"
 );
 
@@ -27,7 +27,7 @@ VALUES (
   'Mechanical Keyboard',
   'Tactile switches, RGB lighting, durable design',
   'images/mech_kb.png',
-  89.99,
+  9.99,
   3  -- references "Accessories"
 );
 
@@ -36,6 +36,6 @@ VALUES (
   'Ultra Gaming Laptop',
   'High-end laptop with dedicated GPU and fast CPU',
   'images/gaming_laptop.png',
-  1499.99,
+  14.99,
   4  -- references "Laptops"
 );

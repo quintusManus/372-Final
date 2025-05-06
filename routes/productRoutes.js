@@ -20,6 +20,8 @@ router.post('/', productController.createNewProduct);
 
 // PUT /api/products/:id (admin to update)
 router.put('/:id', productController.updateProduct);
+// DELETE /api/products/:id (admin to delete)
+router.delete('/:id', productController.deleteProduct);
 
 // You can add DELETE if needed
 // router.delete('/:id', productController.deleteProduct);
