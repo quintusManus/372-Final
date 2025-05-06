@@ -20,15 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const productList = document.querySelector('.product-list');
   const sortSelect = document.getElementById('sort');
-  // Read optional 'search' query parameter
+  let productsData = [];
+  // Read optional 'search' and 'category' parameters
   const params = new URLSearchParams(window.location.search);
   const searchParam = params.get('search');
-  // Data cache
-  let productsData = [];
-  // Populate category dropdown and bind filter
+  const categoryParam = params.get('category');
+
+  // Populate category dropdown
   const categorySelect = document.getElementById('category');
   if (categorySelect) {
-    // Load categories
     fetch('/api/categories')
       .then(res => res.json())
       .then(categories => {
@@ -39,27 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
           opt.textContent = c.name;
           categorySelect.appendChild(opt);
         });
+        // select current value
+        if (categoryParam) categorySelect.value = categoryParam;
+        categorySelect.addEventListener('change', () => {
+          if (categorySelect.value) params.set('category', categorySelect.value);
+          else params.delete('category');
+          // remove search if filtering by category only
+          params.delete('search');
+          window.location.search = params.toString();
+        });
       })
       .catch(err => console.error('Error fetching categories:', err));
-    // Re-fetch products when category changes
-    categorySelect.addEventListener('change', reloadProducts);
   }
-  // Load & render products
-  // Fetch and display products according to current filters
-  async function reloadProducts() {
-    let url = '/api/products';
-    if (searchParam) {
-      url = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
-    } else if (categorySelect && categorySelect.value) {
-      url = `/api/products?category=${encodeURIComponent(categorySelect.value)}`;
-    }
-    try {
-      productsData = await fetch(url).then(res => res.json());
+
+  // Determine fetch URL based on filters
+  let fetchUrl = '/api/products';
+  if (searchParam) {
+    fetchUrl = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
+  } else if (categoryParam) {
+    fetchUrl = `/api/products?category=${encodeURIComponent(categoryParam)}`;
+  }
+  // Fetch & render on page load
+  fetch(fetchUrl)
+    .then(res => res.json())
+    .then(data => {
+      productsData = data;
       renderProducts(productsData);
-    } catch (err) {
-      console.error('Error loading products:', err);
-    }
-  }
+    })
+    .catch(err => console.error('Error fetching products:', err));
   function renderProducts(products) {
     if (!productList) return;
     productList.innerHTML = '';
@@ -88,5 +95,4 @@ document.addEventListener('DOMContentLoaded', () => {
       renderProducts(sorted);
     });
   }
-  reloadProducts();
 });
