@@ -21,17 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const productList = document.querySelector('.product-list');
   const sortSelect = document.getElementById('sort');
   let productsData = [];
-  // Read optional 'search' and 'category' parameters
+  // Read optional 'category' parameter
   const params = new URLSearchParams(window.location.search);
-  const searchParam = params.get('search');
   const categoryParam = params.get('category');
 
-  // Populate category dropdown
+  // Populate category dropdown and handle selection
   const categorySelect = document.getElementById('category');
   if (categorySelect) {
     fetch('/api/categories')
       .then(res => res.json())
       .then(categories => {
+        // build options
         categorySelect.innerHTML = '<option value="">All</option>';
         categories.forEach(c => {
           const opt = document.createElement('option');
@@ -39,26 +39,24 @@ document.addEventListener('DOMContentLoaded', () => {
           opt.textContent = c.name;
           categorySelect.appendChild(opt);
         });
-        // select current value
+        // set current category
         if (categoryParam) categorySelect.value = categoryParam;
+        // on change, reload with new category filter
         categorySelect.addEventListener('change', () => {
-          if (categorySelect.value) params.set('category', categorySelect.value);
-          else params.delete('category');
-          // remove search if filtering by category only
-          params.delete('search');
-          window.location.search = params.toString();
+          const cid = categorySelect.value;
+          const newUrl = window.location.pathname + (cid ? '?category=' + cid : '');
+          window.location.href = newUrl;
         });
       })
       .catch(err => console.error('Error fetching categories:', err));
   }
 
-  // Determine fetch URL based on filters
+  // Determine fetch URL based on category filter
   let fetchUrl = '/api/products';
-  if (searchParam) {
-    fetchUrl = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
-  } else if (categoryParam) {
+  if (categoryParam) {
     fetchUrl = `/api/products?category=${encodeURIComponent(categoryParam)}`;
   }
+  console.log('Fetching products from:', fetchUrl);
   // Fetch & render on page load
   fetch(fetchUrl)
     .then(res => res.json())
