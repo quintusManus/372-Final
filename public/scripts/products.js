@@ -19,59 +19,45 @@ document.addEventListener('DOMContentLoaded', () => {
     return cn.toDataURL('image/png');
   }
   const productList = document.querySelector('.product-list');
-  // Parse URL params
+  const sortSelect = document.getElementById('sort');
+  // Read optional 'search' query parameter
   const params = new URLSearchParams(window.location.search);
   const searchParam = params.get('search');
-  const categoryParam = params.get('category');
-  // Populate category dropdown
+  // Data cache
+  let productsData = [];
+  // Populate category dropdown and bind filter
   const categorySelect = document.getElementById('category');
   if (categorySelect) {
+    // Load categories
     fetch('/api/categories')
       .then(res => res.json())
       .then(categories => {
         categorySelect.innerHTML = '<option value="">All</option>';
         categories.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c.id; opt.textContent = c.name;
+          opt.value = c.id;
+          opt.textContent = c.name;
           categorySelect.appendChild(opt);
         });
-        if (categoryParam) categorySelect.value = categoryParam;
       })
       .catch(err => console.error('Error fetching categories:', err));
-    categorySelect.addEventListener('change', () => {
-      const sel = categorySelect.value;
-      if (sel) params.set('category', sel);
-      else params.delete('category');
-      window.location.search = params.toString();
-    });
+    // Re-fetch products when category changes
+    categorySelect.addEventListener('change', reloadProducts);
   }
   // Load & render products
-  async function loadProducts() {
-    let fetchUrl = '/api/products';
+  // Fetch and display products according to current filters
+  async function reloadProducts() {
+    let url = '/api/products';
     if (searchParam) {
-      fetchUrl = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
-    } else if (categoryParam) {
-      fetchUrl = `/api/products?category=${encodeURIComponent(categoryParam)}`;
+      url = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
+    } else if (categorySelect && categorySelect.value) {
+      url = `/api/products?category=${encodeURIComponent(categorySelect.value)}`;
     }
-    let productsData = [];
     try {
-      productsData = await fetch(fetchUrl).then(r => r.json());
+      productsData = await fetch(url).then(res => res.json());
+      renderProducts(productsData);
     } catch (err) {
-      console.error('Error fetching products:', err);
-      return;
-    }
-    renderProducts(productsData);
-    // Sort control
-    const sortSelect = document.getElementById('sort');
-    if (sortSelect) {
-      sortSelect.addEventListener('change', () => {
-        let sorted = productsData.slice();
-        const val = sortSelect.value;
-        if (val === 'price-asc') sorted.sort((a, b) => a.price - b.price);
-        else if (val === 'price-desc') sorted.sort((a, b) => b.price - a.price);
-        else if (val === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
-        renderProducts(sorted);
-      });
+      console.error('Error loading products:', err);
     }
   }
   function renderProducts(products) {
@@ -91,5 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
       productList.appendChild(article);
     });
   }
-  loadProducts();
+  // Initialize: bind sort change and load products
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      const val = sortSelect.value;
+      let sorted = productsData.slice();
+      if (val === 'price-asc') sorted.sort((a, b) => a.price - b.price);
+      else if (val === 'price-desc') sorted.sort((a, b) => b.price - a.price);
+      else if (val === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+      renderProducts(sorted);
+    });
+  }
+  reloadProducts();
 });
