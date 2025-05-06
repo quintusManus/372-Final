@@ -27,27 +27,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const category = params.get('category');
   const search = params.get('search');
 
-  // Populate category filter dropdown
+  // Populate category filter dropdown (and bind change handler after options loaded)
   const categorySelect = document.getElementById('category');
   if (categorySelect) {
     fetch('/api/categories')
       .then(res => res.json())
       .then(categories => {
+        // Add category options
         categories.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
           opt.textContent = c.name;
           categorySelect.appendChild(opt);
         });
+        // Select current category if present
         if (category) categorySelect.value = category;
+        // Bind change handler once categories are ready
+        categorySelect.addEventListener('change', () => {
+          const sel = categorySelect.value;
+          const newParams = new URLSearchParams();
+          if (sel) newParams.set('category', sel);
+          window.location.href = `products.html${newParams.toString() ? '?' + newParams.toString() : ''}`;
+        });
       })
       .catch(err => console.error('Error fetching categories:', err));
-    categorySelect.addEventListener('change', () => {
-      const sel = categorySelect.value;
-      const newParams = new URLSearchParams();
-      if (sel) newParams.set('category', sel);
-      window.location.href = `products.html${newParams.toString() ? '?' + newParams.toString() : ''}`;
-    });
   }
 
   // Determine fetch URL based on search or category filter
