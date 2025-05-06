@@ -1,16 +1,15 @@
 // public/scripts/products.js
+// public/scripts/products.js
 document.addEventListener('DOMContentLoaded', () => {
-  // Helper to resolve image URLs to public/images
+  // Helper: resolve image URLs
   function imagePath(p) {
     if (!p) return '';
     if (/^https?:\/\//i.test(p)) return p;
     return p.startsWith('/') ? p : '/' + p;
   }
-  // Helper to generate an inline placeholder PNG via Canvas
-  function placeholderDataURL(text, width, height) {
-    width = width || 200; height = height || 150;
-    const cn = document.createElement('canvas');
-    cn.width = width; cn.height = height;
+  // Helper: placeholder image via Canvas
+  function placeholderDataURL(text, width = 200, height = 150) {
+    const cn = document.createElement('canvas'); cn.width = width; cn.height = height;
     const ctx = cn.getContext('2d');
     ctx.fillStyle = '#ddd'; ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = '#666'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -19,73 +18,62 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText(text, width / 2, height / 2, width - 10);
     return cn.toDataURL('image/png');
   }
-  let productsData = [];
   const productList = document.querySelector('.product-list');
-  const sortSelect = document.getElementById('sort');
-  // Parse URL parameters
+  // Parse URL params
   const params = new URLSearchParams(window.location.search);
-  const category = params.get('category');
-  const search = params.get('search');
-
-  // Populate category filter dropdown (and bind change handler after options loaded)
+  const searchParam = params.get('search');
+  const categoryParam = params.get('category');
+  // Populate category dropdown
   const categorySelect = document.getElementById('category');
   if (categorySelect) {
     fetch('/api/categories')
       .then(res => res.json())
       .then(categories => {
-        // Add category options
+        categorySelect.innerHTML = '<option value="">All</option>';
         categories.forEach(c => {
           const opt = document.createElement('option');
-          opt.value = c.id;
-          opt.textContent = c.name;
+          opt.value = c.id; opt.textContent = c.name;
           categorySelect.appendChild(opt);
         });
-        // Select current category if present
-        if (category) categorySelect.value = category;
-        // Bind change handler once categories are ready
-        categorySelect.addEventListener('change', () => {
-          const sel = categorySelect.value;
-          const newParams = new URLSearchParams();
-          if (sel) newParams.set('category', sel);
-          window.location.href = `products.html${newParams.toString() ? '?' + newParams.toString() : ''}`;
-        });
+        if (categoryParam) categorySelect.value = categoryParam;
       })
       .catch(err => console.error('Error fetching categories:', err));
-  }
-
-  // Determine fetch URL based on search or category filter
-  let fetchUrl;
-  if (search) {
-    fetchUrl = `/api/products/search?q=${encodeURIComponent(search)}`;
-  } else if (category) {
-    fetchUrl = `/api/products?category=${encodeURIComponent(category)}`;
-  } else {
-    fetchUrl = '/api/products';
-  }
-  fetch(fetchUrl)
-    .then(res => res.json())
-    .then(data => {
-      console.log('Products data:', data);
-      productsData = data;
-      renderProducts(productsData);
-    })
-    .catch(err => console.error('Error fetching products:', err));
-
-  if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
-      const val = sortSelect.value;
-      let sorted = productsData.slice();
-      if (val === 'price-asc') {
-        sorted.sort((a, b) => a.price - b.price);
-      } else if (val === 'price-desc') {
-        sorted.sort((a, b) => b.price - a.price);
-      } else if (val === 'name') {
-        sorted.sort((a, b) => a.name.localeCompare(b.name));
-      }
-      renderProducts(sorted);
+    categorySelect.addEventListener('change', () => {
+      const sel = categorySelect.value;
+      if (sel) params.set('category', sel);
+      else params.delete('category');
+      window.location.search = params.toString();
     });
   }
-
+  // Load & render products
+  async function loadProducts() {
+    let fetchUrl = '/api/products';
+    if (searchParam) {
+      fetchUrl = `/api/products/search?q=${encodeURIComponent(searchParam)}`;
+    } else if (categoryParam) {
+      fetchUrl = `/api/products?category=${encodeURIComponent(categoryParam)}`;
+    }
+    let productsData = [];
+    try {
+      productsData = await fetch(fetchUrl).then(r => r.json());
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      return;
+    }
+    renderProducts(productsData);
+    // Sort control
+    const sortSelect = document.getElementById('sort');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => {
+        let sorted = productsData.slice();
+        const val = sortSelect.value;
+        if (val === 'price-asc') sorted.sort((a, b) => a.price - b.price);
+        else if (val === 'price-desc') sorted.sort((a, b) => b.price - a.price);
+        else if (val === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        renderProducts(sorted);
+      });
+    }
+  }
   function renderProducts(products) {
     if (!productList) return;
     productList.innerHTML = '';
@@ -97,17 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
       img.onerror = () => { img.onerror = null; img.src = placeholderDataURL(p.name, 400, 300); };
       img.src = imagePath(p.image_url);
       article.appendChild(img);
-      const h3 = document.createElement('h3');
-      h3.textContent = p.name;
-      article.appendChild(h3);
-      const priceP = document.createElement('p');
-      priceP.textContent = `$${p.price.toFixed(2)}`;
-      article.appendChild(priceP);
-      const link = document.createElement('a');
-      link.textContent = 'View Details';
-      link.href = `details.html?id=${p.id}`;
-      article.appendChild(link);
+      const h3 = document.createElement('h3'); h3.textContent = p.name; article.appendChild(h3);
+      const priceP = document.createElement('p'); priceP.textContent = `$${p.price.toFixed(2)}`; article.appendChild(priceP);
+      const link = document.createElement('a'); link.textContent = 'View Details'; link.href = `details.html?id=${p.id}`; article.appendChild(link);
       productList.appendChild(article);
     });
   }
+  loadProducts();
 });
