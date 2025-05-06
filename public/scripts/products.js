@@ -51,18 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => console.error('Error fetching categories:', err));
   }
 
-  // Determine fetch URL based on category filter
-  let fetchUrl = '/api/products';
-  if (categoryParam) {
-    fetchUrl = `/api/products?category=${encodeURIComponent(categoryParam)}`;
-  }
-  console.log('Fetching products from:', fetchUrl);
-  // Fetch & render on page load
-  fetch(fetchUrl)
+  // Fetch all products and then filter client-side by category
+  fetch('/api/products')
     .then(res => res.json())
     .then(data => {
       productsData = data;
-      renderProducts(productsData);
+      console.log(`Loaded ${productsData.length} products`);
+      let toDisplay = productsData;
+      if (categoryParam) {
+        toDisplay = productsData.filter(p => p.category_id === Number(categoryParam));
+        console.log(`Filtering to ${toDisplay.length} products for category ${categoryParam}`);
+      }
+      renderProducts(toDisplay);
     })
     .catch(err => console.error('Error fetching products:', err));
   function renderProducts(products) {
@@ -86,7 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sortSelect) {
     sortSelect.addEventListener('change', () => {
       const val = sortSelect.value;
-      let sorted = productsData.slice();
+      // apply category filter first
+      let sorted = categoryParam
+        ? productsData.filter(p => p.category_id === Number(categoryParam))
+        : productsData.slice();
       if (val === 'price-asc') sorted.sort((a, b) => a.price - b.price);
       else if (val === 'price-desc') sorted.sort((a, b) => b.price - a.price);
       else if (val === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
